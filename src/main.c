@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "brick.h"
 #include <unistd.h>
-#include "moveForward.h"
 
 #define Sleep( msec ) usleep(( msec ) * 1000 ) // Definerar sleep där Sleep(1000)= 1 sekund
 
@@ -16,6 +15,7 @@
 
 #define MOTOR_BOTH     	( MOTOR_LEFT | MOTOR_RIGHT ) // Mask används för att kunna hänvisa till båda på samma gång
 
+void moveForward(int distance); // Distance in cm
 void moveBackward(int distance); // Distance in cm
 void motorsInit();
 void rotate(int degrees);
@@ -75,6 +75,17 @@ void motorsInit()
         brick_uninit();
         return;
     }
+}
+
+void moveForward(int distance)
+{
+    // Run motor 1 and 2 forwards at the same speed
+    // Keep running until the "distance" has been met
+
+    tacho_set_speed_sp(MOTOR_BOTH, maxSpeedWheels * 0.2);
+    tacho_run_forever(MOTOR_BOTH);
+    Sleep(distance);
+    tacho_stop(MOTOR_BOTH);
 }
 
 void moveBackward(int distance)
