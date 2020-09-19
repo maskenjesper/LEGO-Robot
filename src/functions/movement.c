@@ -1,3 +1,5 @@
+#include "physical.h"
+
 void motorsInit()
 {
     if (tacho_is_plugged(MOTOR_BOTH, TACHO_TYPE__NONE_))    // TACHO_TYPE__NONE_ = Alla typer av motorer
