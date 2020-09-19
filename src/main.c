@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "brick.h"
 #include <unistd.h>
+#include "moveForward.h"
 
 #define Sleep( msec ) usleep(( msec ) * 1000 ) // Definerar sleep där Sleep(1000)= 1 sekund
 
