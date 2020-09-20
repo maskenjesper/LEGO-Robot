@@ -1,7 +1,6 @@
-#include "movement.h"
 #include "initialization.h"
-
-void releaseBook();
+#include "movement.h"
+#include "actions.h"
 
 int main()
 {
