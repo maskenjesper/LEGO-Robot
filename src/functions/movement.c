@@ -34,8 +34,8 @@ void moveForward(int distance)
     // Keep running until the "distance" has been met
 
     tacho_set_speed_sp(MOTOR_BOTH, maxSpeedWheels * 0.2);
-    tacho_run_forever(MOTOR_BOTH);
-    Sleep(distance);
+    tacho_set_position_sp(MOTOR_BOTH, distance*(360/17))
+    tacho_run_to_rel_pos(MOTOR_BOTH);
     tacho_stop(MOTOR_BOTH);
 }
 
