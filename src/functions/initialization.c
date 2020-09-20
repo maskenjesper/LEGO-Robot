@@ -1,5 +1,19 @@
 #include "common.h"
 
+void initEverything()
+{
+    if (!brick_init())  // Instansierar klossen och tillåter remote-connection
+	{
+		return (1);
+	}
+    motorsInit();
+}
+
+void unInitEverything()
+{
+    brick_uninit();
+}
+
 void motorsInit()
 {
     if (tacho_is_plugged(MOTOR_BOTH, TACHO_TYPE__NONE_))    // TACHO_TYPE__NONE_ = Alla typer av motorer
