@@ -1,3 +1,7 @@
+/*
+Functions to be used to initialize various things.
+*/
+
 #pragma once
 
 void initEverything();
