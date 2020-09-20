@@ -1,9 +1,17 @@
+/*
+This file is meant to be included at the top of this projects main.c file.
+Below are includes from ev3dev-c library and necessary definitions to be used troughout main.c.
+This file also includes declarations och global variables that can then be used in main.c.
+The purpose of this is to give the main.c file itself a cleaner appearance.
+*/
+
 #include <stdio.h>
 #include "brick.h"
 #include <unistd.h>
 
-#define Sleep( msec ) usleep(( msec ) * 1000 ) // Definerar sleep där Sleep(1000)= 1 sekund
+#define Sleep( msec ) usleep(( msec ) * 1000 ) // Defines Sleep() to pause execution of the program for given amount of time in milliseconds.
 
+// Defines the physical ports on the EV3 "brick" to more descriptive names.
 #define MOTOR_LEFT    	OUTA
 #define MOTOR_CENTER   	OUTB
 #define MOTOR_C    		OUTC
@@ -13,8 +21,8 @@
 #define SENSOR_3		IN3
 #define SENSOR_4		IN4
 
-#define MOTOR_BOTH     	( MOTOR_LEFT | MOTOR_RIGHT ) // Mask används för att kunna hänvisa till båda på samma gång
+#define MOTOR_BOTH     	( MOTOR_LEFT | MOTOR_RIGHT ) // Definition used to refer to both ports for the EV3:s wheel motors at the same time.
 
-// Globala variabler
+// Global variables
 int maxSpeedCenter;
 int maxSpeedWheels;
