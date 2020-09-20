@@ -1,8 +1,8 @@
 /*
-This file is meant to be included at the top of this projects main.c file.
-Below are includes from ev3dev-c library and necessary definitions to be used troughout main.c.
-This file also includes declarations och global variables that can then be used in main.c.
-The purpose of this is to give the main.c file itself a cleaner appearance.
+This file is meant to be included at the top of this projects main.c file as well as other files that may need it.
+Below are includes from ev3dev-c library and necessary definitions to be used troughout the program.
+This file also includes declarations och global variables.
+The purpose of this is to give the files in need of these definitions and declarations a cleaner appearance
 */
 
 #include <stdio.h>
