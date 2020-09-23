@@ -1,18 +1,14 @@
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-This file is meant to be included at the top of this projects main.c file as well as other files that may need it.
-Below are includes from ev3dev-c library and necessary definitions to be used troughout the program.
-This file also includes declarations och global variables.
-The purpose of this is to give the files in need of these definitions and declarations a cleaner appearance
-*/
-
+///////////////////// Includes ///////////////////////////
 #include <stdio.h>
 #include "brick.h"
 #include <unistd.h>
+//////////////////////////////////////////////////////////
 
+////////////////// General definitions ///////////////////
 #define Sleep( msec ) usleep(( msec ) * 1000 ) // Defines Sleep() to pause execution of the program for given amount of time in milliseconds.
+//////////////////////////////////////////////////////////
 
-// Defines the physical ports on the EV3 "brick" to more descriptive names.
+////////////////// Physical definitions //////////////////
 #define MOTOR_LEFT    	OUTA
 #define MOTOR_CENTER   	OUTB
 #define MOTOR_C    		OUTC
@@ -21,35 +17,28 @@ The purpose of this is to give the files in need of these definitions and declar
 #define SENSOR_2		IN2
 #define SENSOR_3		IN3
 #define SENSOR_4		IN4
-
 #define MOTOR_BOTH     	( MOTOR_LEFT | MOTOR_RIGHT ) // Definition used to refer to both ports for the EV3:s wheel motors at the same time.
+///////////////////////////////////////////////////////////
 
-// Global variables
+///////////////// Global variables ////////////////////////
 int maxSpeedCenter;
 int maxSpeedWheels;
-//////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////
-/*
-Functions to be used to initialize various things.
-*/
+/////////////// Function Declarations /////////////////////
+// Initialization
 void initEverything();
 void unInitEverything();
 void motorsInit();
-//////////////////////////////////////////////////////////
-/*
-Functions to be used for moving the robot in various ways.
-*/
+// Movement
 void moveForward(int distance); // Distance in cm
 void moveBackward(int distance); // Distance in cm
 void rotate(int degrees);
-//////////////////////////////////////////////////////////
-/*
-Functions to be used for various actions
-*/
+// Actions
 void releaseBook();
-//////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
 
+////////////////////// Main ///////////////////////////////
 int main()
 {
     initEverything();
@@ -62,8 +51,9 @@ int main()
 
     return 0;
 }
+//////////////////////////////////////////////////////////
 
-////////////////// Movement /////////////////////////////
+////////////////// Movement //////////////////////////////
 void moveForward(int distance)
 {
     // Run motor 1 and 2 forwards at the same speed
