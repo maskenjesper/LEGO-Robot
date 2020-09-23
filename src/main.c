@@ -269,7 +269,6 @@ tacho_run_forever(MOTOR_RIGHT);
 tacho_set_speed_sp(MOTOR_LEFT, maxSpeedWheels * 0.2);
 tacho_run_forever(MOTOR_LEFT);
 
-
 a = sensor_get_value( 0,ultraSonic,0 );
 rotate(90);
 Sleep(1000);
@@ -282,7 +281,5 @@ Sleep(1000);
 d = sensor_get_value( 0,ultraSonic,0 )
 rotate(90);
 Sleep(1000);
-
-
 }
 //////////////////////////////////////////////////////////////////////////
