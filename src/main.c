@@ -10,19 +10,31 @@
 
 ////////////////// Physical definitions //////////////////
 #define MOTOR_LEFT    	OUTA
-#define MOTOR_CENTER   	OUTB
+#define MOTOR_FRONT   	OUTB
 #define MOTOR_C    		OUTC
 #define MOTOR_RIGHT    	OUTD
 #define SENSOR_TOUCH	IN1
-#define SENSOR_2		IN2
-#define SENSOR_3		IN3
+#define SENSOR_GYRO		IN2
+#define SENSOR_SCANER	IN3
 #define SENSOR_4		IN4
 #define MOTOR_BOTH     	( MOTOR_LEFT | MOTOR_RIGHT ) // Definition used to refer to both ports for the EV3:s wheel motors at the same time.
 ///////////////////////////////////////////////////////////
 
 ///////////////// Global variables ////////////////////////
+int maxSpeedWheels;         
 int maxSpeedCenter;
-int maxSpeedWheels;
+// Touch
+POOL_T touchSensor; 
+int TouchReturnValue = 0;
+// Gyro
+POOL_T gyroSensor;
+int rotationReference = 0;
+int degrees;
+// Sonic
+POOL_T ultraSonic;
+int sonicSensor;
+// scaner
+POOL_T scaner;
 ///////////////////////////////////////////////////////////
 
 /////////////// Function Declarations /////////////////////
@@ -30,12 +42,15 @@ int maxSpeedWheels;
 void initEverything();
 void unInitEverything();
 void motorsInit();
+int motorSensorInit();
 // Movement
 void moveForward(int distance); // Distance in cm
 void moveBackward(int distance); // Distance in cm
-void rotate(int degrees);
+void moveUltraSonic(int wallDistance);
+void rotate(int rotationReference, int degrees);
 // Actions
 void releaseBook();
+void findWall(int gyro);
 ///////////////////////////////////////////////////////////
 
 ////////////////////// Main ///////////////////////////////
@@ -110,7 +125,7 @@ void motorsInit()
 {
     if (tacho_is_plugged(MOTOR_BOTH, TACHO_TYPE__NONE_))    // Checks if motors are connected to the "bricks" ports that are supposed to be used
     {  
-        maxSpeedCenter = tacho_get_max_speed(MOTOR_CENTER, 0);   // Checks the max speed of the small motor and assigns it to global variable
+        maxSpeedCenter = tacho_get_max_speed(MOTOR_FRONT, 0);   // Checks the max speed of the small motor and assigns it to global variable
         if (tacho_get_max_speed(MOTOR_LEFT, 0) < tacho_get_max_speed(MOTOR_RIGHT, 0))
         {
             maxSpeedWheels = tacho_get_max_speed(MOTOR_LEFT, 0); 
