@@ -50,7 +50,11 @@ int main()
 	}
     initEverything();
 
-    rotate(90);
+    alignParallelWithWall();
+    moveForward(250);
+    rotate(270);
+    moveTowardsWallAndStop();
+    releaseBook();
 
     unInitEverything();
 }
@@ -150,7 +154,7 @@ void rotate(int degrees)
 
 	tacho_set_speed_sp(MOTOR_RIGHT, -200);
 	tacho_set_speed_sp(MOTOR_LEFT, 200);
-	while(!(sensor_get_value(0,SENSOR_GYRO,0) == rotationTarget)
+	while(!(sensor_get_value(0,SENSOR_GYRO,0) == rotationTarget))
 	{
 		tacho_run_forever(MOTOR_BOTH);
 	}
@@ -176,22 +180,22 @@ void alignParallelWithWall()
 {
     int shortestDistanceToWall = 500, respectiveRotation;
 
-    for(int degree = 0; degree < 360; degree++)
+    for(int degree = 0; degree < 360; degree = degree + 36)
     {
-        if(shortestDistanceToWall > sensor_get_value(0,SENSOR_SCANNER,0))
+        if(sensor_get_value(0,SENSOR_SCANNER,0) < shortestDistanceToWall)
         {
             shortestDistanceToWall = sensor_get_value(0,SENSOR_SCANNER,0);
             respectiveRotation = degree;
         }
-        rotate(1);
+        rotate(36);
     }
 
     tacho_set_speed_sp(MOTOR_RIGHT, -200);
-    tacho_set_speed_sp(MOTOR_LEFT, 200);
-    while(respectiveRotation + 90 != sensor_get_value(0,gyroSensor,0))
-    {
+	tacho_set_speed_sp(MOTOR_LEFT, 200);
+	while(sensor_get_value(0,SENSOR_GYRO,0) != respectiveRotation + 90)
+	{
 		tacho_run_forever(MOTOR_BOTH);
-    }
+	}
 	tacho_stop(MOTOR_BOTH);
 }
 //////////////////////////////////////////////////////////////////////////
