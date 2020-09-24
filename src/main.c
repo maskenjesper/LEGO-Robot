@@ -15,7 +15,7 @@
 #define SENSOR_TOUCH	IN1
 #define SENSOR_GYRO		IN2
 #define SENSOR_SCANNER	IN3
-#define MOTOR_WHEELS    (MOTOR_LEFT|MOTOR_RIGHT) // Definition used to refer to both ports for the EV3:s wheel motors at the same time.
+#define MOTOR_BOTH      (MOTOR_LEFT|MOTOR_RIGHT) // Definition used to refer to both ports for the EV3:s wheel motors at the same time.
 #define MOTOR_ALL       (MOTOR_FRONT|MOTOR_LEFT|MOTOR_RIGHT)
 //////////////////////////////////////////////////////////////////////////
 
@@ -27,27 +27,30 @@
 // Initialization
 void initEverything();
 void unInitEverything();
+//void brickInit();
 void motorsInit();
-int motorSensorInit();
+//void initSensors()
 // Movement
 void moveForward(int distance); // Distance in cm
 void moveBackward(int distance); // Distance in cm
-void moveUltraSonic(int wallDistance);
-void rotate(int rotationReference, int degrees);
+void moveTowardsWallAndStop(int desiredDistanceFromWall);
+void rotate(int degrees);
 // Actions
 void releaseBook();
-void findWall(int gyro);
+void alignParallelWithWall();
 //////////////////////////////////////////////////////////////////////////
 
 ////////////////////// Main //////////////////////////////////////////////
 int main()
 {
+    if (!brick_init())  // instantiates brick and allows remote-connection
+	{
+        printf("Brick did not initialize");
+		return 0;
+	}
     initEverything();
 
-	moveForward(10);
-	moveBackward(10);
-	rotate(360);
-	releaseBook();
+    rotate(90);
 
     unInitEverything();
 }
@@ -56,22 +59,14 @@ int main()
 //////////////////////// Initialization //////////////////////////////////
 void initEverything()
 {
-    brickInit();
     motorsInit();
-    initSensors();
 }
 
 void unInitEverything()
 {
+    printf("Program stopped, uninitializing");
+    Sleep(10000);
     brick_uninit();
-}
-
-void brickInit()
-{
-    if (!brick_init())  // instantiates brick and allows remote-connection
-	{
-		return (1);
-	}
 }
 
 void motorsInit()
@@ -91,50 +86,60 @@ void motorsInit()
         return;
     }
 }
-
-void initSensors()
-{
-    if(!sensor_is_plugged((SENSOR_TOUCH|SENSOR_GYRO), SENSOR_TYPE__NONE_)) {
-		printf("Stoppa in sensorer i port 1 och 2\n");
-		brick_uninit();
-		return(0);
-	}
-
-    sensor_set_mode(SENSOR_GYRO, LEGO_EV3_GYRO_GYRO_G_AND_A);
-	touch_set_mode_touch(SENSOR_TOUCH);
-}
 //////////////////////////////////////////////////////////////////////////
 
 ////////////////// Movement //////////////////////////////////////////////
 void moveForward(int distance)
-{
-    tacho_set_speed_sp(MOTOR_WHEELS, maxSpeedWheels * 0.2);
-    tacho_set_position_sp(MOTOR_WHEELS, distance*(360/17));
-    tacho_run_to_rel_pos(MOTOR_WHEELS);
-    tacho_stop(MOTOR_WHEELS);
+{   
+    int targetPosition = 1.05*(tacho_get_position(MOTOR_LEFT, targetPosition) + distance*20);
+    tacho_set_speed_sp(MOTOR_BOTH, 200);
+
+    while(true)
+    {
+        if(targetPosition > tacho_get_position(MOTOR_LEFT, targetPosition))
+        {
+            tacho_run_forever(MOTOR_BOTH);
+        }
+        else
+        {
+            tacho_stop(MOTOR_BOTH);
+            return;
+        }
+    }
 }
 
 void moveBackward(int distance)
 {
-    tacho_set_speed_sp(MOTOR_WHEELS, -(maxSpeedWheels * 0.2));
-    tacho_set_position_sp(MOTOR_WHEELS, distance*(360/17));
-    tacho_run_to_rel_pos(MOTOR_WHEELS);
-    tacho_stop(MOTOR_WHEELS);
-}
+    int targetPosition = 1*(tacho_get_position(MOTOR_LEFT, targetPosition) - distance*20);
+    tacho_set_speed_sp(MOTOR_BOTH, -200);
 
-void movePerpendicularToWall(int desiredDistanceFromWall)
-{
-	int distanceToMove = sensor_get_value(0,SENSOR_SCANNER,0) - desiredDistanceFromWall;
-
-    while(!(desiredDistanceFromWall == sensor_get_value(0,SENSOR_SCANNER,0)))
+    while(true)
     {
-        if (distanceToMove > 0)
+        if(targetPosition < tacho_get_position(MOTOR_LEFT, targetPosition))
         {
-            moveForward(distanceToMove);
+            tacho_run_forever(MOTOR_BOTH);
         }
         else
         {
-            moveBackward(distanceToMove);
+            tacho_stop(MOTOR_BOTH);
+            return;
+        }
+    }
+}
+
+void moveTowardsWallAndStop(int targetDistanceFromWall)
+{
+    tacho_set_speed_sp(MOTOR_BOTH, 200);
+    while(true)
+    {
+        if(targetDistanceFromWall < (sensor_get_value(0,SENSOR_SCANNER,0))/10)
+        {
+            tacho_run_forever(MOTOR_BOTH);
+        }
+        else
+        {
+            tacho_stop(MOTOR_BOTH);
+            return;
         } 
     }
 }
@@ -143,54 +148,50 @@ void rotate(int degrees)
 {
 	int rotationTarget = sensor_get_value(0,SENSOR_GYRO,0) + degrees;
 
+	tacho_set_speed_sp(MOTOR_RIGHT, -200);
+	tacho_set_speed_sp(MOTOR_LEFT, 200);
 	while(!(sensor_get_value(0,SENSOR_GYRO,0) == rotationTarget)
 	{
-		tacho_set_speed_sp(MOTOR_RIGHT, -200);
-		tacho_set_speed_sp(MOTOR_LEFT, 200);
-		tacho_run_forever(MOTOR_WHEELS);
+		tacho_run_forever(MOTOR_BOTH);
 	}
-	tacho_stop(MOTOR_WHEELS);
+	tacho_stop(MOTOR_BOTH);
 }
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////// Actions /////////////////////////////////
 void releaseBook()
 {
-	tacho_set_speed_sp(MOTOR_FRONT, maxSpeedCenter * -1 );
+	tacho_set_speed_sp(MOTOR_FRONT, -1000);
 	tacho_run_forever(MOTOR_FRONT);
 	Sleep(4500);
 	tacho_stop(MOTOR_FRONT);
 	
-	tacho_set_speed_sp(MOTOR_FRONT, maxSpeedCenter );
+	tacho_set_speed_sp(MOTOR_FRONT, 1000);
 	tacho_run_forever(MOTOR_FRONT);
 	Sleep(4500);
 	tacho_stop(MOTOR_FRONT);
 }
 
-void findWall(int gyro)
+void alignParallelWithWall()
 {
-int a;
-int b;
-int c;
-int d;
+    int shortestDistanceToWall = 500, respectiveRotation;
 
-// roterar med både hjulnano
-tacho_set_speed_sp(MOTOR_RIGHT, maxSpeedWheels * -0.2);
-tacho_run_forever(MOTOR_RIGHT);
-tacho_set_speed_sp(MOTOR_LEFT, maxSpeedWheels * 0.2);
-tacho_run_forever(MOTOR_LEFT);
+    for(int degree = 0; degree < 360; degree++)
+    {
+        if(shortestDistanceToWall > sensor_get_value(0,SENSOR_SCANNER,0))
+        {
+            shortestDistanceToWall = sensor_get_value(0,SENSOR_SCANNER,0);
+            respectiveRotation = degree;
+        }
+        rotate(1);
+    }
 
-a = sensor_get_value( 0,ultraSonic,0 );
-rotate(90);
-Sleep(1000);
-b = sensor_get_value( 0,ultraSonic,0 )
-rotate(90);
-Sleep(1000);
-c = sensor_get_value( 0,ultraSonic,0 )
-rotate(90);
-Sleep(1000);
-d = sensor_get_value( 0,ultraSonic,0 )
-rotate(90);
-Sleep(1000);
+    tacho_set_speed_sp(MOTOR_RIGHT, -200);
+    tacho_set_speed_sp(MOTOR_LEFT, 200);
+    while(respectiveRotation + 90 != sensor_get_value(0,gyroSensor,0))
+    {
+		tacho_run_forever(MOTOR_BOTH);
+    }
+	tacho_stop(MOTOR_BOTH);
 }
 //////////////////////////////////////////////////////////////////////////
