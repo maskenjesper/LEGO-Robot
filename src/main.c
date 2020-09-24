@@ -60,9 +60,9 @@ int main()
 	{
 		return (1);
 	}
-	rotationReference = motorSensorInit();
+	motorsInit();
 
-
+    moveForward(10);
 
     brick_uninit();
 	printf( "dying...\n" );
