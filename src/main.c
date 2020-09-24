@@ -19,10 +19,6 @@
 #define MOTOR_ALL       (MOTOR_FRONT|MOTOR_LEFT|MOTOR_RIGHT)
 //////////////////////////////////////////////////////////////////////////
 
-///////////////// Global variables ///////////////////////////////////////
-
-//////////////////////////////////////////////////////////////////////////
-
 /////////////// Function Declarations ////////////////////////////////////
 // Initialization
 void initEverything();
@@ -50,10 +46,10 @@ int main()
 	}
     initEverything();
 
-    alignParallelWithWall();
+    //alignParallelWithWall();
     moveForward(250);
-    rotate(270);
-    moveTowardsWallAndStop();
+    rotate(90);
+    moveTowardsWallAndStop(30);
     releaseBook();
 
     unInitEverything();
@@ -152,8 +148,8 @@ void rotate(int degrees)
 {
 	int rotationTarget = sensor_get_value(0,SENSOR_GYRO,0) + degrees;
 
-	tacho_set_speed_sp(MOTOR_RIGHT, -200);
-	tacho_set_speed_sp(MOTOR_LEFT, 200);
+	tacho_set_speed_sp(MOTOR_RIGHT, -120);
+	tacho_set_speed_sp(MOTOR_LEFT, 120);
 	while(!(sensor_get_value(0,SENSOR_GYRO,0) == rotationTarget))
 	{
 		tacho_run_forever(MOTOR_BOTH);
@@ -169,7 +165,8 @@ void releaseBook()
 	tacho_run_forever(MOTOR_FRONT);
 	Sleep(4500);
 	tacho_stop(MOTOR_FRONT);
-	
+	Sleep(2000);
+
 	tacho_set_speed_sp(MOTOR_FRONT, 1000);
 	tacho_run_forever(MOTOR_FRONT);
 	Sleep(4500);
@@ -178,24 +175,30 @@ void releaseBook()
 
 void alignParallelWithWall()
 {
-    int shortestDistanceToWall = 500, respectiveRotation;
+    int shortestDistanceToWall = 500;
+    bool scanning = true;
 
-    for(int degree = 0; degree < 360; degree = degree + 36)
+    tacho_set_speed_sp(MOTOR_RIGHT, -100);
+	tacho_set_speed_sp(MOTOR_LEFT, 100);
+	tacho_run_forever(MOTOR_BOTH);
+
+    while(scanning)
     {
-        if(sensor_get_value(0,SENSOR_SCANNER,0) < shortestDistanceToWall)
+        if(sensor_get_value(0,SENSOR_SCANNER,0) < 200)
         {
-            shortestDistanceToWall = sensor_get_value(0,SENSOR_SCANNER,0);
-            respectiveRotation = degree;
+            if(sensor_get_value(0,SENSOR_SCANNER,0) < shortestDistanceToWall)
+            {
+                shortestDistanceToWall = sensor_get_value(0,SENSOR_SCANNER,0);
+            }
+            else
+            {
+                scanning = false;
+                tacho_stop(MOTOR_BOTH);
+            }
         }
-        rotate(36);
     }
 
-    tacho_set_speed_sp(MOTOR_RIGHT, -200);
-	tacho_set_speed_sp(MOTOR_LEFT, 200);
-	while(sensor_get_value(0,SENSOR_GYRO,0) != respectiveRotation + 90)
-	{
-		tacho_run_forever(MOTOR_BOTH);
-	}
-	tacho_stop(MOTOR_BOTH);
+    Sleep(5000);
+    rotate(90);
 }
 //////////////////////////////////////////////////////////////////////////
