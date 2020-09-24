@@ -168,21 +168,19 @@ void moveForward(int distance)
     // Run motor 1 and 2 forwards at the same speed
     // Keep running until the "distance" has been met
 
-    tacho_set_speed_sp(MOTOR_BOTH, maxSpeedWheels * 0.2);
+    tacho_set_speed_sp(MOTOR_BOTH, 200);
     tacho_set_position_sp(MOTOR_BOTH, distance*(360/17));
     tacho_run_to_rel_pos(MOTOR_BOTH);
-    tacho_stop(MOTOR_BOTH);
 }
 
 void moveBackward(int distance)
 {
-    // Run motor 1 and 2 backwards at the same speed
+    // Run motor 1 and 2 forwards at the same speed
     // Keep running until the "distance" has been met
 
-    tacho_set_speed_sp(MOTOR_BOTH, -(maxSpeedWheels * 0.2));
+    tacho_set_speed_sp(MOTOR_BOTH, 200);
     tacho_set_position_sp(MOTOR_BOTH, distance*(360/17));
     tacho_run_to_rel_pos(MOTOR_BOTH);
-    tacho_stop(MOTOR_BOTH);
 }
 
 void moveUltraSonic(int wallDistance)
