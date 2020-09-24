@@ -23,9 +23,7 @@
 // Initialization
 void initEverything();
 void unInitEverything();
-//void brickInit();
 void motorsInit();
-//void initSensors()
 // Movement
 void moveForward(int distance); // Distance in cm
 void moveBackward(int distance); // Distance in cm
@@ -61,14 +59,12 @@ void initEverything()
 {
     motorsInit();
 }
-
 void unInitEverything()
 {
     printf("Program stopped, uninitializing");
     Sleep(10000);
     brick_uninit();
 }
-
 void motorsInit()
 {
     if (tacho_is_plugged(MOTOR_ALL, TACHO_TYPE__NONE_))    // Checks if motors are connected to the "bricks" ports that are supposed to be used
@@ -107,7 +103,6 @@ void moveForward(int distance)
         }
     }
 }
-
 void moveBackward(int distance)
 {
     int targetPosition = 1*(tacho_get_position(MOTOR_LEFT, targetPosition) - distance*20);
@@ -126,7 +121,6 @@ void moveBackward(int distance)
         }
     }
 }
-
 void moveTowardsWallAndStop(int targetDistanceFromWall)
 {
     tacho_set_speed_sp(MOTOR_BOTH, 200);
@@ -143,7 +137,6 @@ void moveTowardsWallAndStop(int targetDistanceFromWall)
         } 
     }
 }
-
 void rotate(int degrees)
 {
 	int rotationTarget = sensor_get_value(0,SENSOR_GYRO,0) + degrees;
@@ -172,7 +165,6 @@ void releaseBook()
 	Sleep(4500);
 	tacho_stop(MOTOR_FRONT);
 }
-
 void alignParallelWithWall()
 {
     int shortestDistanceToWall = 500;
