@@ -214,20 +214,20 @@ void releaseBook()
 void alignParallelWithWall(int side)
 {
     int targetRotation = findWall(360);
-    rotateAbsolute(targetRotation - 90, 100);
+    rotateAbsolute(targetRotation - 90, 200);
 
+    targetRotation = 0;
     int amountOfScans = 8;
     for(int i = 1; i <= amountOfScans; i++)
     {
         if(i % 2 == 0)
         {
-            targetRotation = targetRotation + findWall(-180)/amountOfScans;
+            targetRotation = targetRotation + (findWall(-180) / amountOfScans);
         }
         else
         {
-            targetRotation = targetRotation + findWall(180)/amountOfScans;
+            targetRotation = targetRotation + (findWall(180) / amountOfScans);
         }
-        
     }
 
     /*int targetRotation1 = findWall(180);
@@ -249,12 +249,12 @@ void alignParallelWithWall(int side)
 int findWall(int degrees)
 {
     int shortestDistanceToWall = 2550, targetRotation;
-
     int scanRotation = sensor_get_value(0,SENSOR_GYRO,0) + degrees;
+
     if(degrees > 0)
     {
-        tacho_set_speed_sp(MOTOR_RIGHT, -150);
-        tacho_set_speed_sp(MOTOR_LEFT, 150);
+        tacho_set_speed_sp(MOTOR_RIGHT, -100);
+        tacho_set_speed_sp(MOTOR_LEFT, 100);
         tacho_run_forever(MOTOR_BOTH); 
         while(sensor_get_value(0,SENSOR_GYRO,0) < scanRotation)
         {
@@ -267,8 +267,8 @@ int findWall(int degrees)
     }
     else
     {
-        tacho_set_speed_sp(MOTOR_RIGHT, 150);
-	    tacho_set_speed_sp(MOTOR_LEFT, -150);
+        tacho_set_speed_sp(MOTOR_RIGHT, 100);
+	    tacho_set_speed_sp(MOTOR_LEFT, -100);
         tacho_run_forever(MOTOR_BOTH); 
         while(sensor_get_value(0,SENSOR_GYRO,0) > scanRotation)
         {
