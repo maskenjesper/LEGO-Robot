@@ -22,33 +22,34 @@
 /////////////// Function Declarations ////////////////////////////////////
 // Initialization
 void initEverything();
-void unInitEverything();
+void brickInit();
 void motorsInit();
+void unInitEverything();
 // Movement
 void moveForward(int distance); // Distance in cm
 void moveBackward(int distance); // Distance in cm
 void moveTowardsWallAndStop(int desiredDistanceFromWall);
 void rotate(int degrees);
+void rotateAbsolute(int absoluteRotation, int speed);
 // Actions
 void releaseBook();
 void alignParallelWithWall();
+// Diagnostic
+void printGyroValue();
+void printUltrasoundValue();
 //////////////////////////////////////////////////////////////////////////
 
 ////////////////////// Main //////////////////////////////////////////////
 int main()
 {
-    if (!brick_init())  // instantiates brick and allows remote-connection
-	{
-        printf("Brick did not initialize");
-		return 0;
-	}
     initEverything();
 
-    //alignParallelWithWall();
-    moveForward(250);
-    rotate(90);
-    moveTowardsWallAndStop(30);
-    releaseBook();
+    alignParallelWithWall();
+    //moveForward(250);
+    //rotate(360);
+    //rotateAbsolute(720, 200);
+    //moveTowardsWallAndStop(30);
+    //releaseBook();
 
     unInitEverything();
 }
@@ -57,30 +58,42 @@ int main()
 //////////////////////// Initialization //////////////////////////////////
 void initEverything()
 {
+    brickInit();
     motorsInit();
 }
-void unInitEverything()
+
+void brickInit()
 {
-    printf("Program stopped, uninitializing");
-    Sleep(10000);
-    brick_uninit();
+    if (!brick_init())  // instantiates brick and allows remote-connection
+	{
+        printf("\n\n\n Brick did not initialize\n");
+        Sleep(10000);
+	}
 }
+
 void motorsInit()
 {
     if (tacho_is_plugged(MOTOR_ALL, TACHO_TYPE__NONE_))    // Checks if motors are connected to the "bricks" ports that are supposed to be used
     {  
         tacho_reset(MOTOR_ALL);
-        printf("Tachos Initialized\n");
+        printf("\n\n\n Tachos Initialized\n");
     }
     else 
     {
-        printf( "Insert left motor to port A,\n"
-        "Insert right motor to port D.\n"
+        printf( "\n\n\n Insert left motor to port A,\n"
+        " Insert right motor to port D.\n"
         );
-        Sleep(5000);
+        Sleep(10000);
         brick_uninit();
         return;
     }
+}
+
+void unInitEverything()
+{
+    printf("\n\n\n Program stopped, uninitializing\n");
+    Sleep(10000);
+    brick_uninit();
 }
 //////////////////////////////////////////////////////////////////////////
 
@@ -103,6 +116,7 @@ void moveForward(int distance)
         }
     }
 }
+
 void moveBackward(int distance)
 {
     int targetPosition = 1*(tacho_get_position(MOTOR_LEFT, targetPosition) - distance*20);
@@ -121,6 +135,7 @@ void moveBackward(int distance)
         }
     }
 }
+
 void moveTowardsWallAndStop(int targetDistanceFromWall)
 {
     tacho_set_speed_sp(MOTOR_BOTH, 200);
@@ -137,17 +152,48 @@ void moveTowardsWallAndStop(int targetDistanceFromWall)
         } 
     }
 }
+
 void rotate(int degrees)
 {
 	int rotationTarget = sensor_get_value(0,SENSOR_GYRO,0) + degrees;
 
-	tacho_set_speed_sp(MOTOR_RIGHT, -120);
-	tacho_set_speed_sp(MOTOR_LEFT, 120);
-	while(!(sensor_get_value(0,SENSOR_GYRO,0) == rotationTarget))
-	{
-		tacho_run_forever(MOTOR_BOTH);
-	}
-	tacho_stop(MOTOR_BOTH);
+    rotateAbsolute(rotationTarget, 200);
+}
+
+void rotateAbsolute(int absoluteRotation, int speed)
+{
+    if(speed < 50)
+    {
+        speed = 50;
+    }
+
+    if(absoluteRotation > sensor_get_value(0,SENSOR_GYRO,0))
+    {
+	    tacho_set_speed_sp(MOTOR_RIGHT, -speed);
+	    tacho_set_speed_sp(MOTOR_LEFT, speed);
+
+        while(sensor_get_value(0,SENSOR_GYRO,0) < absoluteRotation)
+	    {
+		    tacho_run_forever(MOTOR_BOTH);
+            printGyroValue();
+	    }
+	    tacho_stop(MOTOR_BOTH);
+        Sleep(50);
+        rotateAbsolute(absoluteRotation, speed/2);
+    }
+    else if(absoluteRotation < sensor_get_value(0,SENSOR_GYRO,0))
+    {
+        tacho_set_speed_sp(MOTOR_RIGHT, speed);
+	    tacho_set_speed_sp(MOTOR_LEFT, -speed);
+
+        while(sensor_get_value(0,SENSOR_GYRO,0) > absoluteRotation)
+	    {
+		    tacho_run_forever(MOTOR_BOTH);
+	    }
+	    tacho_stop(MOTOR_BOTH);
+        Sleep(50);
+        rotateAbsolute(absoluteRotation, speed/2);
+    }
 }
 //////////////////////////////////////////////////////////////////////////
 
@@ -165,32 +211,39 @@ void releaseBook()
 	Sleep(4500);
 	tacho_stop(MOTOR_FRONT);
 }
+
 void alignParallelWithWall()
 {
-    int shortestDistanceToWall = 500;
-    bool scanning = true;
+    int shortestDistanceToWall = 2550, respectiveRotation = 0;
 
-    tacho_set_speed_sp(MOTOR_RIGHT, -100);
-	tacho_set_speed_sp(MOTOR_LEFT, 100);
-	tacho_run_forever(MOTOR_BOTH);
-
-    while(scanning)
+    for(int degree = 0; degree < 360; degree = degree + 90)
     {
-        if(sensor_get_value(0,SENSOR_SCANNER,0) < 200)
+        if(sensor_get_value(0,SENSOR_SCANNER,0) < shortestDistanceToWall)
         {
-            if(sensor_get_value(0,SENSOR_SCANNER,0) < shortestDistanceToWall)
-            {
-                shortestDistanceToWall = sensor_get_value(0,SENSOR_SCANNER,0);
-            }
-            else
-            {
-                scanning = false;
-                tacho_stop(MOTOR_BOTH);
-            }
+            shortestDistanceToWall = sensor_get_value(0,SENSOR_SCANNER,0);
+            respectiveRotation = sensor_get_value(0,SENSOR_GYRO,0);
         }
+        
+        rotate(90);
     }
 
-    Sleep(5000);
-    rotate(90);
+    Sleep(50);
+    rotateAbsolute(respectiveRotation, 200);
+}
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////// Diagnostic //////////////////////////////////
+void printGyroValue()
+{
+    int gyro_value = sensor_get_value(0,SENSOR_GYRO,0);
+    Sleep(100);
+    printf("%d\n", gyro_value);
+}
+
+void printUltrasoundValue()
+{
+    int ultrasound_value = sensor_get_value(0,SENSOR_SCANNER,0);
+    Sleep(100);
+    printf("%d\n", ultrasound_value);
 }
 //////////////////////////////////////////////////////////////////////////
