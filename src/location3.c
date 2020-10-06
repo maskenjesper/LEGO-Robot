@@ -46,11 +46,15 @@ int main()
 {
     initEverything();
 
-    alignParallelWithWall(-1);
+    alignParallelWithWall(0);
+    moveTowardsWallAndStop(50);
+    rotate(90);
     moveForward(250);
     rotate(-90);
     moveTowardsWallAndStop(30);
     releaseBook();
+
+    moveBackward(40);
     rotate(-180);
     moveTowardsWallAndStop(50);
     rotate(90);
@@ -182,7 +186,7 @@ void rotateAbsolute(int absoluteRotation, int speed)
 		    tacho_run_forever(MOTOR_BOTH);
 	    }
 	    tacho_stop(MOTOR_BOTH);
-        Sleep(50);
+        Sleep(200);
         rotateAbsolute(absoluteRotation, speed/2);
     }
     else if(absoluteRotation < sensor_get_value(0,SENSOR_GYRO,0))
@@ -195,7 +199,7 @@ void rotateAbsolute(int absoluteRotation, int speed)
 		    tacho_run_forever(MOTOR_BOTH);
 	    }
 	    tacho_stop(MOTOR_BOTH);
-        Sleep(50);
+        Sleep(200);
         rotateAbsolute(absoluteRotation, speed/2);
     }
 }

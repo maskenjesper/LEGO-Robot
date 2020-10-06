@@ -9,12 +9,13 @@
 //////////////////////////////////////////////////////////////////////////
 
 ////////////////// Physical definitions //////////////////////////////////
-#define MOTOR_LEFT    	OUTA
-#define MOTOR_FRONT   	OUTB
-#define MOTOR_RIGHT    	OUTD
-#define SENSOR_TOUCH	IN1
-#define SENSOR_GYRO		IN2
-#define SENSOR_SCANNER	IN3
+#define MOTOR_LEFT    	    OUTA
+#define MOTOR_FRONT   	    OUTB
+#define MOTOR_RIGHT    	    OUTD
+#define SENSOR_TOUCH_LEFT	IN1
+#define SENSOR_GYRO		    IN2
+#define SENSOR_SCANNER	    IN3
+#define SENSOR_TOUCH_RIGHT  IN4
 #define MOTOR_BOTH      (MOTOR_LEFT|MOTOR_RIGHT) // Definition used to refer to both ports for the EV3:s wheel motors at the same time.
 #define MOTOR_ALL       (MOTOR_FRONT|MOTOR_LEFT|MOTOR_RIGHT)
 //////////////////////////////////////////////////////////////////////////
@@ -45,14 +46,7 @@ int main()
 {
     initEverything();
 
-    alignParallelWithWall(-1);
-    moveForward(150);
-    rotate(90);
-    moveTowardsWallAndStop(30);
-    releaseBook();
-    moveBackward(20);
-    rotate(90);
-    moveForward(150);
+    moveTowardsWallAndStop(50);
 
     unInitEverything();
 }
@@ -106,7 +100,7 @@ void moveForward(int distance)
     int targetPosition = 1.05*(tacho_get_position(MOTOR_LEFT, targetPosition) + distance*20);
     tacho_set_speed_sp(MOTOR_BOTH, 200);
 
-    while(true)
+    while(true) 
     {
         if(targetPosition > tacho_get_position(MOTOR_LEFT, targetPosition))
         {
@@ -144,6 +138,7 @@ void moveTowardsWallAndStop(int targetDistanceFromWall)
     tacho_set_speed_sp(MOTOR_BOTH, 200);
     while(true)
     {
+        printUltrasoundValue();
         if(targetDistanceFromWall < (sensor_get_value(0,SENSOR_SCANNER,0))/10)
         {
             tacho_run_forever(MOTOR_BOTH);
@@ -180,7 +175,7 @@ void rotateAbsolute(int absoluteRotation, int speed)
 		    tacho_run_forever(MOTOR_BOTH);
 	    }
 	    tacho_stop(MOTOR_BOTH);
-        Sleep(50);
+        Sleep(200);
         rotateAbsolute(absoluteRotation, speed/2);
     }
     else if(absoluteRotation < sensor_get_value(0,SENSOR_GYRO,0))
@@ -193,7 +188,7 @@ void rotateAbsolute(int absoluteRotation, int speed)
 		    tacho_run_forever(MOTOR_BOTH);
 	    }
 	    tacho_stop(MOTOR_BOTH);
-        Sleep(50);
+        Sleep(200);
         rotateAbsolute(absoluteRotation, speed/2);
     }
 }
@@ -217,35 +212,38 @@ void releaseBook()
 void alignParallelWithWall(int side)
 {
     int targetRotation = findWall(360);
-    rotateAbsolute(targetRotation - 90, 200);
+    rotateAbsolute(targetRotation + 180, 200);
 
-    targetRotation = 0;
-    int amountOfScans = 2;
-    for(int i = 1; i <= amountOfScans; i++)
+    tacho_set_speed_sp(MOTOR_BOTH, -200);
+    tacho_run_forever(MOTOR_BOTH);
+    bool running = true;
+    while(running)
     {
-        if(i % 2 == 0)
+        if(sensor_get_value(0,SENSOR_TOUCH_LEFT,0) && sensor_get_value(0,SENSOR_TOUCH_RIGHT,0))
         {
-            targetRotation = targetRotation + (findWall(-180) / amountOfScans);
-        }
-        else
-        {
-            targetRotation = targetRotation + (findWall(180) / amountOfScans);
+            Sleep(3000);
+            tacho_stop(MOTOR_BOTH);
+            Sleep(500);
+            targetRotation = sensor_get_value(0,SENSOR_GYRO,0);
+            running = false;
         }
     }
 
-    rotateAbsolute(targetRotation + (90*side), 100);
+    moveForward(50);
+
+    rotateAbsolute(targetRotation - (90*side), 100);
     Sleep(500);
 }
 
 int findWall(int degrees)
 {
-    int shortestDistanceToWall = 2550, targetRotation;
+    int shortestDistanceToWall = 2550, speed = 100, targetRotation;
     int scanRotation = sensor_get_value(0,SENSOR_GYRO,0) + degrees;
 
     if(degrees > 0)
     {
-        tacho_set_speed_sp(MOTOR_RIGHT, -100);
-        tacho_set_speed_sp(MOTOR_LEFT, 100);
+        tacho_set_speed_sp(MOTOR_RIGHT, -speed);
+        tacho_set_speed_sp(MOTOR_LEFT, speed);
         tacho_run_forever(MOTOR_BOTH); 
         while(sensor_get_value(0,SENSOR_GYRO,0) < scanRotation)
         {
@@ -258,8 +256,8 @@ int findWall(int degrees)
     }
     else
     {
-        tacho_set_speed_sp(MOTOR_RIGHT, 100);
-	    tacho_set_speed_sp(MOTOR_LEFT, -100);
+        tacho_set_speed_sp(MOTOR_RIGHT, speed);
+	    tacho_set_speed_sp(MOTOR_LEFT, -speed);
         tacho_run_forever(MOTOR_BOTH); 
         while(sensor_get_value(0,SENSOR_GYRO,0) > scanRotation)
         {
